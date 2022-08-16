@@ -1,0 +1,24 @@
+{
+  "name": "forkify-v2",
+  "version": "1.0.0",
+  "description": "\"Recipe Application\"",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HRHTaggers/forkify-v2.git"
+  },
+  "author": "\"Helen Tagliarini\"",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HRHTaggers/forkify-v2/issues"
+  },
+  "homepage": "https://github.com/HRHTaggers/forkify-v2#readme",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.7.0",
+    "parcel": "^2.7.0",
+    "sass": "^1.26.10"
+  }
+}
