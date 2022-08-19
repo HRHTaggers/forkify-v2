@@ -538,14 +538,6 @@ var _model = require("./model");
 var _recipeView = require("./views/recipeView");
 var _recipeViewDefault = parcelHelpers.interopDefault(_recipeView);
 var _runtime = require("regenerator-runtime/runtime");
-const recipeContainer = document.querySelector(".recipe");
-const timeout = function(s) {
-    return new Promise(function(_, reject) {
-        setTimeout(function() {
-            reject(new Error(`Request took too long! Timeout after ${s} second`));
-        }, s * 1000);
-    });
-};
 // https://forkify-api.herokuapp.com/v2
 ///////////////////////////////////////
 const controlRecipes = async function() {
@@ -561,15 +553,14 @@ const controlRecipes = async function() {
         //Display Recipe
         (0, _recipeViewDefault.default).render(_model.state.recipe);
     } catch (err) {
-        alert(err);
+        (0, _recipeViewDefault.default).renderError(`We could not find that recipe. Please try another one.`);
     }
 };
 controlRecipes();
-//Display recipe on page load/hashchange
-[
-    `hashchange`,
-    `load`
-].forEach((event)=>window.addEventListener(event, controlRecipes));
+const init = function() {
+    (0, _recipeViewDefault.default).addHandlerRender(controlRecipes);
+};
+init();
 
 },{"core-js/modules/web.immediate.js":"49tUX","./model":"Y4A21","regenerator-runtime/runtime":"dXNgZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./views/recipeView":"l60JC"}],"49tUX":[function(require,module,exports) {
 // TODO: Remove this module from `core-js@4` since it's split to modules listed below
@@ -1693,7 +1684,7 @@ const loadRecipe = async function(id) {
         };
         console.log(state.recipe);
     } catch (err) {
-        alert(err);
+        throw err;
     }
 };
 
@@ -2338,6 +2329,8 @@ var _fractyDefault = parcelHelpers.interopDefault(_fracty);
 class RecipeView {
     #parentElement = document.querySelector(`.recipe`);
     #data;
+    #errorMessage = `We could not find that recipe. Please try again.`;
+    #successMessage = ``;
     render(data) {
         this.#data = data;
         const markup = this.#generateMarkup();
@@ -2357,6 +2350,41 @@ class RecipeView {
     `;
         this.#clear;
         this.#parentElement.insertAdjacentHTML(`afterbegin`, markup);
+    }
+    renderError(message = this.#errorMessage) {
+        const markup = `
+        <div class="error">
+            <div>
+              <svg>
+                <use href="src/img/icons.svg#icon-alert-triangle"></use>
+              </svg>
+            </div>
+            <p>${message}</p>
+          </div>
+      `;
+        this.#clear();
+        this.#parentElement.insertAdjacentHTML(`afterbegin`, markup);
+    }
+    renderSuccess(message = this.#successMessage) {
+        const markup = `
+        <div class="message">
+          <div>
+            <svg>
+              <use href="src/img/icons.svg#icon-smile"></use>
+            </svg>
+          </div>
+          <p>${message}</p>
+        </div>
+      `;
+        this.#clear();
+        this.#parentElement.insertAdjacentHTML(`afterbegin`, markup);
+    }
+    //Display recipe on page load/hashchange
+    addHandlerRender(handler) {
+        [
+            `hashchange`,
+            `load`
+        ].forEach((event)=>window.addEventListener(event, handler));
     }
      #generateMarkup() {
         return `

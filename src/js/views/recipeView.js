@@ -4,6 +4,8 @@ import fracty from "fracty";
 class RecipeView {
   #parentElement = document.querySelector(`.recipe`);
   #data;
+  #errorMessage = `We could not find that recipe. Please try again.`;
+  #successMessage = ``;
 
   render(data) {
     this.#data = data;
@@ -26,6 +28,43 @@ class RecipeView {
     `;
     this.#clear;
     this.#parentElement.insertAdjacentHTML(`afterbegin`, markup);
+  }
+
+  renderError(message = this.#errorMessage) {
+    const markup = `
+        <div class="error">
+            <div>
+              <svg>
+                <use href="src/img/icons.svg#icon-alert-triangle"></use>
+              </svg>
+            </div>
+            <p>${message}</p>
+          </div>
+      `;
+    this.#clear();
+    this.#parentElement.insertAdjacentHTML(`afterbegin`, markup);
+  }
+
+  renderSuccess(message = this.#successMessage) {
+    const markup = `
+        <div class="message">
+          <div>
+            <svg>
+              <use href="src/img/icons.svg#icon-smile"></use>
+            </svg>
+          </div>
+          <p>${message}</p>
+        </div>
+      `;
+    this.#clear();
+    this.#parentElement.insertAdjacentHTML(`afterbegin`, markup);
+  }
+
+  //Display recipe on page load/hashchange
+  addHandlerRender(handler) {
+    [`hashchange`, `load`].forEach((event) =>
+      window.addEventListener(event, handler)
+    );
   }
 
   #generateMarkup() {
@@ -92,7 +131,9 @@ class RecipeView {
                         <svg class="recipe__icon">
                             <use href="${icons}#icon-check"></use>
                         </svg>
-                        <div class="recipe__quantity">${fracty(ing.quantity).toString()}</div>
+                        <div class="recipe__quantity">${fracty(
+                          ing.quantity
+                        ).toString()}</div>
                         <div class="recipe__description">
                             <span class="recipe__unit">${ing.unit}</span>
                             ${ing.description}
