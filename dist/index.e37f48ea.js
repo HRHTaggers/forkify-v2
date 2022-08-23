@@ -566,7 +566,8 @@ const controlSearchResults = async function() {
         const query = (0, _searchViewDefault.default).getQuery();
         if (!query) return;
         await _model.loadSearchResults(query);
-        (0, _resultsViewDefault.default).render(_model.state.search.results);
+        // resultsView.render(model.state.search.results);
+        (0, _resultsViewDefault.default).render(_model.getSearchResultsPage(1));
     } catch (err) {
         console.log(err);
     }
@@ -1678,6 +1679,7 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "state", ()=>state);
 parcelHelpers.export(exports, "loadRecipe", ()=>loadRecipe);
 parcelHelpers.export(exports, "loadSearchResults", ()=>loadSearchResults);
+parcelHelpers.export(exports, "getSearchResultsPage", ()=>getSearchResultsPage);
 var _regeneratorRuntime = require("regenerator-runtime");
 var _config = require("./config");
 var _helpers = require("./helpers");
@@ -1685,7 +1687,9 @@ const state = {
     recipe: {},
     search: {
         query: ``,
-        results: []
+        results: [],
+        page: 1,
+        resultsPerPage: (0, _config.RECIPES_PER_PAGE)
     }
 };
 const loadRecipe = async function(id) {
@@ -1723,6 +1727,12 @@ const loadSearchResults = async function(query) {
         console.error(`${err}`);
         throw err;
     }
+};
+const getSearchResultsPage = function(page = state.search.page) {
+    state.search.page = page;
+    const start = (page - 1) * state.search.resultsPerPage;
+    const end = page * state.search.resultsPerPage;
+    return state.search.results.slice(start, end);
 };
 
 },{"regenerator-runtime":"dXNgZ","./config":"k5Hzs","./helpers":"hGI1E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dXNgZ":[function(require,module,exports) {
@@ -2297,8 +2307,10 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "API_URL", ()=>API_URL);
 parcelHelpers.export(exports, "TIMEOUT_SEC", ()=>TIMEOUT_SEC);
+parcelHelpers.export(exports, "RECIPES_PER_PAGE", ()=>RECIPES_PER_PAGE);
 const API_URL = `https://forkify-api.herokuapp.com/api/v2/recipes`;
 const TIMEOUT_SEC = 10;
+const RECIPES_PER_PAGE = 10;
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
 exports.interopDefault = function(a) {
