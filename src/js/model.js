@@ -45,7 +45,7 @@ export const loadSearchResults = async function (query) {
             return {
                 id: recipe.id,
                 title: recipe.title,
-                publisher: recipe.pubisher,
+                publisher: recipe.publisher,
                 image: recipe.image_url,
             };
         });
