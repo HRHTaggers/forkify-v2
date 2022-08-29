@@ -551,6 +551,8 @@ const controlRecipes = async function() {
         //Identify recipe ID
         const id = window.location.hash.slice(1);
         if (!id) return;
+        //Show selected result in results view (class)
+        (0, _resultsViewDefault.default).update(_model.getSearchResultsPage());
         //Loading spinner
         (0, _recipeViewDefault.default).renderSpinner();
         //Find Recipe
@@ -586,7 +588,7 @@ const controlServings = function(noServings) {
     //Update no. of servings
     _model.updateServings(noServings);
     //Update recipe view
-    (0, _recipeViewDefault.default).render(_model.state.recipe);
+    (0, _recipeViewDefault.default).update(_model.state.recipe);
 };
 const init = function() {
     (0, _recipeViewDefault.default).addHandlerRender(controlRecipes);
@@ -2659,6 +2661,18 @@ class View {
         this._clear();
         this._parentElement.insertAdjacentHTML(`afterbegin`, markup);
     }
+    update(data) {
+        this._data = data;
+        const newMarkup = this._generateMarkup();
+        const newDOM = document.createRange().createContextualFragment(newMarkup);
+        const newElements = Array.from(newDOM.querySelectorAll(`*`));
+        const currentElements = Array.from(this._parentElement.querySelectorAll(`*`));
+        newElements.forEach((newElements, i)=>{
+            const currentEl = currentElements[i];
+            if (!newElements.isEqualNode(currentEl) && newElements.firstChild?.nodeValue.trim() !== ``) currentEl.textContent = newElements.textContent;
+            if (!newElements.isEqualNode(currentEl)) Array.from(newElements.attributes).forEach((attribute)=>currentEl.setAttribute(attribute.name, attribute.value));
+        });
+    }
     _clear() {
         this._parentElement.innerHTML = ``;
     }
@@ -2739,9 +2753,10 @@ class ResultsView extends (0, _viewDefault.default) {
         return this._data.map(this._generateMarkupPreview).join(``);
     }
     _generateMarkupPreview(result) {
+        const id = window.location.hash.slice(1);
         return `
           <li class="preview">
-            <a class="preview__link preview__link--active" href="#${result.id}">
+            <a class="preview__link ${result.id === id ? "preview__link--active" : ``}" href="#${result.id}">
               <figure class="preview__fig">
                 <img src="${result.image}" alt="${result.title}" />
               </figure>
