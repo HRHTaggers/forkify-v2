@@ -8,10 +8,6 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 import { async } from "regenerator-runtime";
 
-if(module.hot) {
-    module.hot.accept();
-}
-
 const controlRecipes = async function () {
   try {
     
@@ -27,7 +23,6 @@ const controlRecipes = async function () {
 
     //Find Recipe
     await model.loadRecipe(id);
-    const { recipe } = model.state;
 
     //Display Recipe
     recipeView.render(model.state.recipe);
@@ -35,6 +30,7 @@ const controlRecipes = async function () {
   } catch (err) {
 
     recipeView.renderError(`We could not find that recipe. Please try another one.`);
+    console.log(err);
   
   }
 };
@@ -75,9 +71,16 @@ const controlServings = function(noServings) {
     recipeView.update(model.state.recipe);
 };
 
+const controlAddBookmark = function() {
+    if (!model.state.recipe.bookmarked) model.addBookmark(model.state.recipe);
+    else model.removeBookmark(model.state.recipe.id);
+    recipeView.update(model.state.recipe);
+};
+
 const init = function() {
     recipeView.addHandlerRender(controlRecipes);
     recipeView.addHandlerUpdate(controlServings);
+    recipeView.addHandlerAddBookmark(controlAddBookmark);
     searchView.addHandlerSearch(controlSearchResults);
     paginationView.addHandlerClick(controlPagination);
 };
