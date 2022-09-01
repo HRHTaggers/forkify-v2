@@ -535,6 +535,7 @@ function hmrAcceptRun(bundle, id) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _webImmediateJs = require("core-js/modules/web.immediate.js");
 var _model = require("./model");
+var _config = require("./config");
 var _recipeView = require("./views/recipeView");
 var _recipeViewDefault = parcelHelpers.interopDefault(_recipeView);
 var _searchView = require("./views/searchView");
@@ -604,8 +605,24 @@ const controlAddBookmark = function() {
 const controlBookmarks = function() {
     (0, _bookmarksViewDefault.default).render(_model.state.bookmarks);
 };
-const controlAddRecipe = function(newRecipe) {
-    console.log(newRecipe);
+const controlAddRecipe = async function(newRecipe) {
+    try {
+        //Render spinner
+        (0, _addRecipeViewDefault.default).renderSpinner();
+        //Upload form inputs to API
+        await _model.uploadRecipe(newRecipe);
+        //Render recipe
+        (0, _recipeViewDefault.default).render(_model.state.recipe);
+        //Display success message
+        (0, _addRecipeViewDefault.default).renderSuccess();
+        //Close form modal
+        setTimeout(function() {
+            (0, _addRecipeViewDefault.default).toggleWindow();
+        }, (0, _config.MODAL_CLOSE_SEC) * 1000);
+    } catch (err) {
+        console.log(err);
+        (0, _addRecipeViewDefault.default).renderError(err.message);
+    }
 };
 const init = function() {
     (0, _recipeViewDefault.default).addHandlerRender(controlRecipes);
@@ -618,7 +635,7 @@ const init = function() {
 };
 init();
 
-},{"core-js/modules/web.immediate.js":"49tUX","./model":"Y4A21","./views/recipeView":"l60JC","./views/searchView":"9OQAM","regenerator-runtime/runtime":"dXNgZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./views/resultsView":"cSbZE","regenerator-runtime":"dXNgZ","./views/paginationView":"6z7bi","./views/bookmarksView":"4Lqzq","./views/addRecipeView":"i6DNj"}],"49tUX":[function(require,module,exports) {
+},{"core-js/modules/web.immediate.js":"49tUX","./model":"Y4A21","./views/recipeView":"l60JC","./views/searchView":"9OQAM","regenerator-runtime/runtime":"dXNgZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./views/resultsView":"cSbZE","regenerator-runtime":"dXNgZ","./views/paginationView":"6z7bi","./views/bookmarksView":"4Lqzq","./views/addRecipeView":"i6DNj","./config":"k5Hzs"}],"49tUX":[function(require,module,exports) {
 // TODO: Remove this module from `core-js@4` since it's split to modules listed below
 require("../modules/web.clear-immediate");
 require("../modules/web.set-immediate");
@@ -1723,6 +1740,7 @@ parcelHelpers.export(exports, "getSearchResultsPage", ()=>getSearchResultsPage);
 parcelHelpers.export(exports, "updateServings", ()=>updateServings);
 parcelHelpers.export(exports, "addBookmark", ()=>addBookmark);
 parcelHelpers.export(exports, "removeBookmark", ()=>removeBookmark);
+parcelHelpers.export(exports, "uploadRecipe", ()=>uploadRecipe);
 var _regeneratorRuntime = require("regenerator-runtime");
 var _config = require("./config");
 var _helpers = require("./helpers");
@@ -1736,9 +1754,26 @@ const state = {
     },
     bookmarks: []
 };
+const createRecipeObject = function(data) {
+    const { recipe  } = data.data;
+    return {
+        id: recipe.id,
+        title: recipe.title,
+        publisher: recipe.publisher,
+        sourceUrl: recipe.source_url,
+        image: recipe.image_url,
+        servings: recipe.servings,
+        cookingTime: recipe.cooking_time,
+        ingredients: recipe.ingredients,
+        ...recipe.key && {
+            key: recipe.key
+        }
+    };
+};
 const loadRecipe = async function(id) {
     try {
         const data = await (0, _helpers.getJSON)(`${(0, _config.API_URL)}/${id}`);
+        state.recipe = createRecipeObject(data);
         const { recipe  } = data.data;
         state.recipe = {
             id: recipe.id,
@@ -1808,7 +1843,35 @@ const init = function() {
 init();
 const clearBookmarks = function() {
     localStorage.clear(`bookmarks`);
-}; //clearBookmarks();
+};
+const uploadRecipe = async function(newRecipe) {
+    try {
+        const ingredients = Object.entries(newRecipe).filter((entry)=>entry[0].startsWith(`ingredient`) && entry[1] !== ``).map((ingredient)=>{
+            const ingredientsArr = ingredient[1].replaceAll(` `, ``).split(`,`);
+            if (ingredientsArr.length !== 3) throw new Error(`Wrong ingredient format - please input using the correct format.`);
+            const [quantity, unit, description] = ingredientsArr;
+            return {
+                quantity: quantity ? +quantity : null,
+                unit,
+                description
+            };
+        });
+        const recipe = {
+            title: newRecipe.title,
+            source_url: newRecipe.sourceUrl,
+            image_url: newRecipe.image,
+            publisher: newRecipe.publisher,
+            cooking_time: +newRecipe.cookingTime,
+            servings: +newRecipe.servings,
+            ingredients
+        };
+        const data = await (0, _helpers.sendJSON)(`${(0, _config.API_URL)}?key=${(0, _config.API_KEY)}`, recipe);
+        state.recipe = createRecipeObject(data);
+        addBookmark(state.recipe);
+    } catch (err) {
+        throw err;
+    }
+};
 
 },{"regenerator-runtime":"dXNgZ","./config":"k5Hzs","./helpers":"hGI1E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dXNgZ":[function(require,module,exports) {
 /**
@@ -2381,10 +2444,14 @@ try {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "API_URL", ()=>API_URL);
+parcelHelpers.export(exports, "API_KEY", ()=>API_KEY);
 parcelHelpers.export(exports, "TIMEOUT_SEC", ()=>TIMEOUT_SEC);
+parcelHelpers.export(exports, "MODAL_CLOSE_SEC", ()=>MODAL_CLOSE_SEC);
 parcelHelpers.export(exports, "RECIPES_PER_PAGE", ()=>RECIPES_PER_PAGE);
 const API_URL = `https://forkify-api.herokuapp.com/api/v2/recipes`;
+const API_KEY = `ce490b8c-c528-4704-b46c-39a5b3838d49`;
 const TIMEOUT_SEC = 10;
+const MODAL_CLOSE_SEC = 2.5;
 const RECIPES_PER_PAGE = 10;
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
@@ -2421,6 +2488,7 @@ exports.export = function(dest, destName, get) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "getJSON", ()=>getJSON);
+parcelHelpers.export(exports, "sendJSON", ()=>sendJSON);
 var _config = require("./config");
 const timeout = function(s) {
     return new Promise(function(_, reject) {
@@ -2431,8 +2499,29 @@ const timeout = function(s) {
 };
 const getJSON = async function(url) {
     try {
+        const fetchPro = fetch(url);
         const response = await Promise.race([
-            fetch(url),
+            fetchPro,
+            timeout((0, _config.TIMEOUT_SEC))
+        ]);
+        const data = await response.json();
+        if (!response.ok) throw new Error(`${data.message} (${response.status})`);
+        return data;
+    } catch (err) {
+        throw err;
+    }
+};
+const sendJSON = async function(url, uploadData) {
+    try {
+        const fetchPro = fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(uploadData)
+        });
+        const response = await Promise.race([
+            fetchPro,
             timeout((0, _config.TIMEOUT_SEC))
         ]);
         const data = await response.json();
@@ -2929,6 +3018,7 @@ class addRecipeView extends (0, _viewDefault.default) {
     _overlay = document.querySelector(`.overlay`);
     _btnOpen = document.querySelector(`.nav__btn--add-recipe`);
     _btnClose = document.querySelector(`.btn--close-modal`);
+    _successMessage = `Recipe was successfully uploaded!`;
     constructor(){
         super();
         this._addHandlerShowWindow();
