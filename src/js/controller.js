@@ -11,7 +11,6 @@ import { async } from "regenerator-runtime";
 
 const controlRecipes = async function () {
   try {
-    
     //Identify recipe ID
     const id = window.location.hash.slice(1);
     if (!id) return;
@@ -30,7 +29,7 @@ const controlRecipes = async function () {
 
     //Display Recipe
     recipeView.render(model.state.recipe);
-    
+
   } catch (err) {
 
     recipeView.renderError(`We could not find that recipe. Please try another one.`);
@@ -83,11 +82,16 @@ const controlAddBookmark = function() {
     bookmarksView.render(model.state.bookmarks);
 };
 
+const controlBookmarks = function() {
+  bookmarksView.render(model.state.bookmarks);
+}
+
 const init = function() {
     recipeView.addHandlerRender(controlRecipes);
     recipeView.addHandlerUpdate(controlServings);
     recipeView.addHandlerAddBookmark(controlAddBookmark);
     searchView.addHandlerSearch(controlSearchResults);
     paginationView.addHandlerClick(controlPagination);
+    bookmarksView.addHandlerRender(controlBookmarks);
 };
 init();
