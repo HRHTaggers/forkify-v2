@@ -30,11 +30,11 @@ export default class View {
 
       if(!newElements.isEqualNode(currentEl) && newElements.firstChild?.nodeValue.trim() !== ``) {
         currentEl.textContent = newElements.textContent;
-      }
+      };
 
       if(!newElements.isEqualNode(currentEl))
-        Array.from(newElements.attributes).forEach(attribute => currentEl.setAttribute(attribute.name, attribute.value));
-
+        Array.from(newElements.attributes).forEach(attribute => 
+          currentEl.setAttribute(attribute.name, attribute.value));
     });
   }
 
